@@ -30,6 +30,12 @@ jobs:
     - name: Find page JSON
       id: findPageJson
       run: |
+        pageSize=1
+        currentOffset=0
         echo ${{ steps.removeMd.outputs.replaced }}
-        page=$(curl https://main--envelop--netcentric.hlx.live/query-index.json | jq '.data[] | select(.path=="${{ steps.removeMd.outputs.replaced }}")')
+        while [ -z "$page" ]
+        do
+          page=$(curl "https://main--envelop--netcentric.hlx.live/query-index.json?limit=$pageSize&offset=$currentOffset" | jq '.data[] | select(.path=="${{ steps.removeMd.outputs.replaced }}")')
+          currentOffset=$(($currentOffset + $pageSize))
+        done
         echo $page
