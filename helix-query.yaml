@@ -1,0 +1,16 @@
+version: 1
+
+indices:
+  site:
+    include:
+      - '/**'
+    exclude:
+      - '/drafts/**'
+    target: /query-index.json
+    properties:
+      title:
+        select: head > meta[property="og:title"]
+        value: attribute(el, "content")
+      role:
+        select: head > meta[name="role"]
+        value: attribute(el, "content")
