@@ -33,7 +33,7 @@ jobs:
         pageSize=1
         currentOffset=0
         total=0
-        while [ -z "$role"] && [ "$currentOffset" -le "$total" ]
+        while [ -z "$role" ] && [ "$currentOffset" -le "$total" ]
         do
             json=$(curl "https://main--envelop--netcentric.hlx.live/query-index.json?limit=$pageSize&offset=$currentOffset")
             echo "json: $json"
@@ -57,7 +57,7 @@ jobs:
 
         curl --location --request PUT  \
         --url "$keyPath" \
-        --header "Authorization: Bearer $${{ secrets.CF_BEARER_TOKEN }}" \
+        --header "Authorization: Bearer ${{ secrets.CF_BEARER_TOKEN }}" \
         --header 'Content-Type: multipart/form-data' \
         --form 'metadata={}' \
         --form "value=$role"
