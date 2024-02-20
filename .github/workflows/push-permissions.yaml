@@ -48,12 +48,9 @@ jobs:
         encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
 
         echo "finished"
-        echo $role
 
         basePath="https://api.cloudflare.com/client/v4/accounts/${{ vars.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ vars.CF_KV_NAMESPACE_ID }}/values/"
         keyPath=$basePath$encodedUri
-
-        echo $keyPath
 
         echo "Updating ${{ steps.removeMd.outputs.replaced }} with value $role"
 
