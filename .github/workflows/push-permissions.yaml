@@ -52,7 +52,7 @@ jobs:
         echo $data
         echo $role
 
-        basePath="https://api.cloudflare.com/client/v4/accounts/${{ env.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ env.CF_KV_NAMESPACE_ID }}/values/"
+        basePath="https://api.cloudflare.com/client/v4/accounts/${{ vars.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ vars.CF_KV_NAMESPACE_ID }}/values/"
         keyPath=$basePath$encodedUri
 
         curl --location --request PUT  \
