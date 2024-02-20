@@ -39,12 +39,25 @@ jobs:
             echo "json: $json"
             total=$(echo "$json" | jq '.total')
             echo "total: $total"
-            role=$(echo "$json" | jq '( .data[] | select(.path=="/page-no4") ) .role')
+            role=$(echo "$json" | jq '( .data[] | select(.path=="${{ steps.removeMd.outputs.replaced }}") ) .role')
             echo "role: '$role"
             currentOffset=$(($currentOffset + $pageSize))
             echo "currentOffset: $currentOffset"
         done
+
+        encodedUri=$(echo "$${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
+
         echo "finished"
         echo $json
         echo $data
         echo $role
+
+        basePath="https://api.cloudflare.com/client/v4/accounts/${{ env.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ env.CF_KV_NAMESPACE_ID }}/values/"
+        keyPath=$basePath$encodedUri
+
+        curl --location --request PUT  \
+        --url "$keyPath" \
+        --header "Authorization: Bearer $${{ secrets.CF_BEARER_TOKEN }}" \
+        --header 'Content-Type: multipart/form-data' \
+        --form 'metadata={}' \
+        --form "value=$role"
