@@ -13,6 +13,9 @@ jobs:
     - run: |
         echo "Status: ${{ github.event.client_payload.status }}"
         echo "Path: ${{ github.event.client_payload.path }}"
+        encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
+        basePath="https://api.cloudflare.com/client/v4/accounts/${{ vars.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ vars.CF_KV_NAMESPACE_ID }}/values/"
+        keyPath=$basePath$encodedUri
   index_ingest:
     if: (github.event.client_payload.status == 200 || github.event.client_payload.status == 204) && endsWith(github.event.client_payload.path, '.md')
     runs-on: ubuntu-latest
@@ -36,24 +39,20 @@ jobs:
         while [ -z "$role" ] && [ "$currentOffset" -le "$total" ]
         do
             json=$(curl "https://main--envelop--netcentric.hlx.live/query-index.json?limit=$pageSize&offset=$currentOffset")
-            echo "json: $json"
             total=$(echo -n "$json" | jq '.total')
-            echo "total: $total"
             role=$(echo -n "$json" | jq '( .data[] | select(.path=="${{ steps.removeMd.outputs.replaced }}") ) .role')
-            echo "role: '$role"
             currentOffset=$(($currentOffset + $pageSize))
-            echo "currentOffset: $currentOffset"
         done
 
         encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
 
         echo "finished"
-        echo $json
-        echo $data
         echo $role
 
         basePath="https://api.cloudflare.com/client/v4/accounts/${{ vars.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ vars.CF_KV_NAMESPACE_ID }}/values/"
         keyPath=$basePath$encodedUri
+
+        echo $keyPath
 
         curl --location --request PUT  \
         --url "$keyPath" \
