@@ -37,15 +37,15 @@ jobs:
         do
             json=$(curl "https://main--envelop--netcentric.hlx.live/query-index.json?limit=$pageSize&offset=$currentOffset")
             echo "json: $json"
-            total=$(echo "$json" | jq '.total')
+            total=$(echo -n "$json" | jq '.total')
             echo "total: $total"
-            role=$(echo "$json" | jq '( .data[] | select(.path=="${{ steps.removeMd.outputs.replaced }}") ) .role')
+            role=$(echo -n "$json" | jq '( .data[] | select(.path=="${{ steps.removeMd.outputs.replaced }}") ) .role')
             echo "role: '$role"
             currentOffset=$(($currentOffset + $pageSize))
             echo "currentOffset: $currentOffset"
         done
 
-        encodedUri=$(echo "$${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
+        encodedUri=$(echo -n "$${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
 
         echo "finished"
         echo $json
