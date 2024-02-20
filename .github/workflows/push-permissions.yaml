@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
-        echo "Full payload: ${{ github.event.client_payload }}"
+        echo "Full payload: ${{ toJson(github.event) }}"
         echo "Status: ${{ github.event.client_payload.status }}"
         echo "Path: ${{ github.event.client_payload.path }}"
         encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
