@@ -45,7 +45,7 @@ jobs:
             echo "currentOffset: $currentOffset"
         done
 
-        encodedUri=$(echo -n "$${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
+        encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
 
         echo "finished"
         echo $json
