@@ -54,6 +54,8 @@ jobs:
 
         echo $keyPath
 
+        echo "Updating ${{ steps.removeMd.outputs.replaced }} with value $role"
+
         curl --location --request PUT  \
         --url "$keyPath" \
         --header "Authorization: Bearer ${{ secrets.CF_BEARER_TOKEN }}" \
