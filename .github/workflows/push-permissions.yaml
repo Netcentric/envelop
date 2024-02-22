@@ -5,6 +5,7 @@ on:
     types:
       - resource-published
       - resource-unpublished
+
 jobs:
   debug:
     runs-on: ubuntu-latest
