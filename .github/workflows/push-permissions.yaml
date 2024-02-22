@@ -11,6 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - run: |
+        echo "Full payload: ${{ toJson(github.event) }}"
         echo "Status: ${{ github.event.client_payload.status }}"
         echo "Path: ${{ github.event.client_payload.path }}"
         encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
@@ -20,14 +21,14 @@ jobs:
     if: (github.event.client_payload.status == 200 || github.event.client_payload.status == 204) && endsWith(github.event.client_payload.path, '.md')
     runs-on: ubuntu-latest
     steps:
-    - name: Sleep for 90 seconds assuming query-index-search.json will be updated before
-      run: sleep 90s
-      shell: bash
+    # - name: Sleep for 90 seconds assuming query-index-search.json will be updated before
+    #   run: sleep 90s
+    #   shell: bash
     - name: Remove .md extension
       id: removeMd
       uses: frabert/replace-string-action@v2
       with:
-        pattern: '(index)?\.md$'
+        pattern: '\.md$'
         string: ${{ github.event.client_payload.path }}
         replace-with: ''
     - name: Find page JSON
@@ -46,7 +47,7 @@ jobs:
 
         encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
 
-        echo "Done"
+        echo "finished"
 
         basePath="https://api.cloudflare.com/client/v4/accounts/${{ vars.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ vars.CF_KV_NAMESPACE_ID }}/values/"
         keyPath=$basePath$encodedUri
