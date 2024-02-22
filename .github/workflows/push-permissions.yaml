@@ -38,7 +38,8 @@ jobs:
         total=0
         while [ -z "$role" ] && [ "$currentOffset" -le "$total" ]
         do
-            json=$(curl "https://main--envelop--netcentric.hlx.live/query-index.json?limit=$pageSize&offset=$currentOffset")
+            json=$(curl "https://main--envelop--netcentric.hlx.live/query-index.json?limit=$pageSize&offset=$currentOffset" \
+            --header "Authorization: token ${{ secrets.BACKEND_TOKEN }}")
             total=$(echo -n "$json" | jq '.total')
             role=$(echo -n "$json" | jq '( .data[] | select(.path=="${{ steps.removeMd.outputs.replaced }}") ) .role')
             currentOffset=$(($currentOffset + $pageSize))
