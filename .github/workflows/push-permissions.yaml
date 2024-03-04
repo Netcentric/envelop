@@ -1,0 +1,62 @@
+name: Push Permissions
+
+on: 
+  repository_dispatch:
+    types:
+      - resource-published
+      - resource-unpublished
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+    - run: |
+        echo "Status: ${{ github.event.client_payload.status }}"
+        echo "Path: ${{ github.event.client_payload.path }}"
+        encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
+        basePath="https://api.cloudflare.com/client/v4/accounts/${{ vars.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ vars.CF_KV_NAMESPACE_ID }}/values/"
+        keyPath=$basePath$encodedUri
+  index_ingest:
+    if: (github.event.client_payload.status == 200 || github.event.client_payload.status == 204) && endsWith(github.event.client_payload.path, '.md')
+    runs-on: ubuntu-latest
+    steps:
+    - name: Sleep for 90 seconds assuming query-index-search.json will be updated before
+      run: sleep 90s
+      shell: bash
+    - name: Remove .md extension
+      id: removeMd
+      uses: frabert/replace-string-action@v2
+      with:
+        pattern: '(index)?\.md$'
+        string: ${{ github.event.client_payload.path }}
+        replace-with: ''
+    - name: Find page JSON
+      id: findPageJson
+      run: |
+        pageSize=1
+        currentOffset=0
+        total=0
+        while [ -z "$role" ] && [ "$currentOffset" -le "$total" ]
+        do
+            json=$(curl "https://main--envelop--netcentric.hlx.live/query-index.json?limit=$pageSize&offset=$currentOffset" \
+            --header "Authorization: token ${{ secrets.BACKEND_TOKEN }}")
+            total=$(echo -n "$json" | jq '.total')
+            role=$(echo -n "$json" | jq '( .data[] | select(.path=="${{ steps.removeMd.outputs.replaced }}") ) .role')
+            currentOffset=$(($currentOffset + $pageSize))
+        done
+
+        encodedUri=$(echo -n "${{ steps.removeMd.outputs.replaced }}" | jq --slurp --raw-input --raw-output @uri)
+
+        echo "Done"
+
+        basePath="https://api.cloudflare.com/client/v4/accounts/${{ vars.CF_ACCOUNT_ID }}/storage/kv/namespaces/${{ vars.CF_KV_NAMESPACE_ID }}/values/"
+        keyPath=$basePath$encodedUri
+
+        echo "Updating ${{ steps.removeMd.outputs.replaced }} with value $role"
+
+        curl --location --request PUT  \
+        --url "$keyPath" \
+        --header "Authorization: Bearer ${{ secrets.CF_BEARER_TOKEN }}" \
+        --header 'Content-Type: multipart/form-data' \
+        --form 'metadata={}' \
+        --form "value=$role"
